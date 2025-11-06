@@ -1,4 +1,5 @@
 import { Inngest } from "inngest";
+import { User } from "../model/User.js";
 import connectDB from "./db.js";
 
 export const inngest = new Inngest({ id: "inview" });
