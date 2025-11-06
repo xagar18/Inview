@@ -20,11 +20,11 @@ app.get("/api", (req, res) => {
 // Serve static assets in production
 const __dirname = path.resolve();
 if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "./client/dist")));
+  app.use(express.static(path.join(__dirname, "../client/dist")));
 
   // Catch-all route - use regex for Express 5+
   app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, "./client/dist/index.html"));
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
   });
 }
 
