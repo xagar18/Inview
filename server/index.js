@@ -12,7 +12,7 @@ app.use(cors());
 //db connection
 connectDB();
 
-// API routes (define these BEFORE static files and catch-all)
+// API routes
 app.get("/api", (req, res) => {
   res.send("Hello, World!");
 });
@@ -22,8 +22,7 @@ const __dirname = path.resolve();
 if (ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "./client/dist")));
 
-  // Catch-all route - should be LAST
-  app.get("*", (req, res) => {
+  app.get("/:path(*)", (req, res) => {
     res.sendFile(path.join(__dirname, "./client/dist/index.html"));
   });
 }
