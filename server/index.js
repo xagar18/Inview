@@ -1,3 +1,4 @@
+import { clerkMiddleware } from "@clerk/express";
 import cors from "cors";
 import express from "express";
 import { serve } from "inngest/express";
@@ -5,6 +6,8 @@ import path from "path";
 import connectDB from "./src/lib/db.js";
 import { ENV } from "./src/lib/env.js";
 import { inngest, inngestFunctions } from "./src/lib/inngest.js";
+import { protectRoute } from "./src/middleware/protectRoute.js";
+import chatRoutes from "./src/routes/chatRoutes.js";
 
 const app = express();
 
@@ -15,15 +18,22 @@ app.use(
     credentials: true,
   })
 );
+app.use(clerkMiddleware());
 app.use(express.urlencoded({ extended: true }));
+
+// Inngest webhook endpoint
 app.use(
   "/api/inngest",
   serve({ client: inngest, functions: inngestFunctions })
 );
 
-// API routes (define these BEFORE static files and catch-all)
-app.get("/api", (req, res) => {
-  res.send("Hello, World!");
+//chat routes
+app.use("/api/chat", chatRoutes);
+//session  routes
+app.use("/api/chat", chatRoutes);
+
+app.get("/video-calls", protectRoute, (req, res) => {
+  res.send("Video Calls Endpoint");
 });
 
 // Serve static assets in production

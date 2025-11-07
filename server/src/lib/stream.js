@@ -1,14 +1,20 @@
+import { StreamClient } from "@stream-io/node-sdk";
 import { StreamChat } from "stream-chat";
 import { ENV } from "./env.js";
 
-export const streamClient = StreamChat.getInstance(
+export const streamClient = new StreamClient(
   ENV.STREAM_API_KEY,
   ENV.STREAM_SECRET_KEY
 );
 
+export const chatClient = StreamChat.getInstance(
+  ENV.STREAM_API_KEY,
+  ENV.STREAM_SECRET_KEY
+); //for chat features
+
 export const upsertStreamUser = async (user) => {
   try {
-    await streamClient.upsertUser(user);
+    await chatClient.upsertUser(user);
     console.log("Upserted Stream user:", user);
     return user;
   } catch (error) {
@@ -18,7 +24,7 @@ export const upsertStreamUser = async (user) => {
 
 export const deleteStreamUser = async (userId) => {
   try {
-    await streamClient.deleteUser(userId);
+    await chatClient.deleteUser(userId);
     console.log("Deleted Stream user with ID:", userId);
     return userId;
   } catch (error) {
