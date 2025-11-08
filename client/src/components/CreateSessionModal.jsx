@@ -30,7 +30,9 @@ function CreateSessionModal({
               className="select w-full"
               value={roomConfig.problem}
               onChange={(e) => {
-                const selectedProblem = problems.find((p) => p.title === e.target.value);
+                const selectedProblem = problems.find(
+                  (p) => p.title === e.target.value
+                );
                 setRoomConfig({
                   difficulty: selectedProblem.difficulty,
                   problem: e.target.value,
@@ -56,10 +58,12 @@ function CreateSessionModal({
               <div>
                 <p className="font-semibold">Room Summary:</p>
                 <p>
-                  Problem: <span className="font-medium">{roomConfig.problem}</span>
+                  Problem:{" "}
+                  <span className="font-medium">{roomConfig.problem}</span>
                 </p>
                 <p>
-                  Max Participants: <span className="font-medium">2 (1-on-1 session)</span>
+                  Max Participants:{" "}
+                  <span className="font-medium">2 (1-on-1 session)</span>
                 </p>
               </div>
             </div>

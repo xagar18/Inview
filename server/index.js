@@ -32,7 +32,7 @@ app.use(
 app.use("/api/chat", chatRoutes);
 
 //session  routes
-app.use("/api/session", sessionRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 app.get("/video-calls", protectRoute, (req, res) => {
   res.send("Video Calls Endpoint");

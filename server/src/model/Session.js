@@ -16,10 +16,9 @@ const sessionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    particpants: {
+    participant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
       default: null,
     },
     status: {
@@ -27,9 +26,9 @@ const sessionSchema = new mongoose.Schema(
       enum: ["active", "completed"],
       default: "active",
     },
+    // stream video call ID
     callId: {
       type: String,
-      required: true,
       default: "",
     },
   },

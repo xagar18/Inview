@@ -2,6 +2,57 @@ import { chatClient, streamClient } from "../lib/stream.js";
 import { Session } from "../model/Session.js";
 
 // Create a new session
+// export async function createSession(req, res) {
+//   console.log("session create called")
+//   try {
+//     const { problem, difficulty } = req.body;
+//     const userId = req.user._id;
+//     const clerkId = req.user.clerkId;
+
+//     if (!problem || !difficulty) {
+//       return res
+//         .status(400)
+//         .json({ message: "Problem and difficulty are required" });
+//     }
+//     console.log("got problem and diff");
+
+//     //create session logic here
+//     const callId = `session_${Date.now()}_${Math.random()
+//       .toString(36)
+//       .substring(7)}`;
+
+//     // Create session in DB
+//     const session = await Session.create({
+//       problem,
+//       difficulty,
+//       host: userId,
+//       callId,
+//     });
+//     console.log("session created in db");
+
+//     // create stream video room here
+//     await streamClient.video.call("default", callId).getOrCreate({
+//       data: {
+//         created_by_id: clerkId,
+//         custom: { problem, difficulty, sessionId: session._id.toString() },
+//       },
+//     });
+
+//     // chat client setup
+//     const channel = chatClient.channel("messaging", callId, {
+//       name: `${problem} Session`,
+//       created_by_id: clerkId,
+//       members: [clerkId],
+//     });
+//     await channel.create();
+
+//     return res.status(201).json({ session, message: "Session created" });
+//   } catch (error) {
+//     console.error("Error creating session:", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// }
+
 export async function createSession(req, res) {
   try {
     const { problem, difficulty } = req.body;
@@ -14,12 +65,12 @@ export async function createSession(req, res) {
         .json({ message: "Problem and difficulty are required" });
     }
 
-    //create session logic here
+    // generate a unique call id for stream video
     const callId = `session_${Date.now()}_${Math.random()
       .toString(36)
       .substring(7)}`;
 
-    // Create session in DB
+    // create session in db
     const session = await Session.create({
       problem,
       difficulty,
@@ -27,7 +78,7 @@ export async function createSession(req, res) {
       callId,
     });
 
-    // create stream video room here
+    // create stream video call
     await streamClient.video.call("default", callId).getOrCreate({
       data: {
         created_by_id: clerkId,
@@ -35,18 +86,19 @@ export async function createSession(req, res) {
       },
     });
 
-    // chat client setup
+    // chat messaging
     const channel = chatClient.channel("messaging", callId, {
       name: `${problem} Session`,
       created_by_id: clerkId,
       members: [clerkId],
     });
+
     await channel.create();
 
-    return res.status(201).json({ session, message: "Session created" });
+    res.status(201).json({ session });
   } catch (error) {
-    console.error("Error creating session:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.log("Error in createSession controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
