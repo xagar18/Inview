@@ -8,6 +8,7 @@ import { ENV } from "./src/lib/env.js";
 import { inngest, inngestFunctions } from "./src/lib/inngest.js";
 import { protectRoute } from "./src/middleware/protectRoute.js";
 import chatRoutes from "./src/routes/chatRoutes.js";
+import sessionRoutes from "./src/routes/sessionRoute.js";
 
 const app = express();
 
@@ -29,8 +30,9 @@ app.use(
 
 //chat routes
 app.use("/api/chat", chatRoutes);
+
 //session  routes
-app.use("/api/chat", chatRoutes);
+app.use("/api/session", sessionRoutes);
 
 app.get("/video-calls", protectRoute, (req, res) => {
   res.send("Video Calls Endpoint");

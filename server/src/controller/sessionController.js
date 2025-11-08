@@ -1,5 +1,5 @@
 import { chatClient, streamClient } from "../lib/stream.js";
-import Session from "../model/Session.js";
+import { Session } from "../model/Session.js";
 
 // Create a new session
 export async function createSession(req, res) {
@@ -112,10 +112,20 @@ export async function joinSession(req, res) {
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
+    if (session.status !== "active") {
+      return res
+        .status(400)
+        .json({ message: "Cannot join a completed session" });
+    }
+    if (session.host.toString() === userId.toString()) {
+      return res
+        .status(400)
+        .json({ message: "Host cannot join as participant" });
+    }
 
     // check if session is already full
     if (session.particpants) {
-      return res.status(400).json({ message: "Session is already full" });
+      return res.status(409).json({ message: "Session is already full" });
     }
 
     // add participant to session
@@ -157,10 +167,6 @@ export async function endSession(req, res) {
       return res.status(400).json({ message: "Session is already completed" });
     }
 
-    // end session
-    session.status = "completed";
-    await session.save();
-
     // delete stream video room
     const call = await streamClient.video.call("default", session.callId);
     await call.delete();
@@ -168,6 +174,10 @@ export async function endSession(req, res) {
     // delete chat channel
     const channel = chatClient.channel("messaging", session.callId);
     await channel.delete({ hard_delete: true });
+
+    // update session status
+    session.status = "completed";
+    await session.save();
 
     return res
       .status(200)
