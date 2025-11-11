@@ -124,7 +124,7 @@ export async function getMyRecentSessions(req, res) {
     const userId = req.user._id;
 
     const sessions = await Session.find({
-      $or: [{ host: userId }, { particpants: userId }],
+      $or: [{ host: userId }, { participants: userId }],
     })
       .sort({ createdAt: -1 })
       .limit(10);
@@ -175,13 +175,20 @@ export async function joinSession(req, res) {
         .json({ message: "Host cannot join as participant" });
     }
 
+    // check if user is already a participant
+    if (session.participants && session.participants.toString() === userId.toString()) {
+      return res
+        .status(200)
+        .json({ session, message: "Already joined this session" });
+    }
+
     // check if session is already full
-    if (session.particpants) {
+    if (session.participants !== null && session.participants.toString() !== userId.toString()) {
       return res.status(409).json({ message: "Session is already full" });
     }
 
     // add participant to session
-    session.particpants = userId;
+    session.participants = userId;
     await session.save();
 
     const channel = chatClient.channel("messaging", session.callId);

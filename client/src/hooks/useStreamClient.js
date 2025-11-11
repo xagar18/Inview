@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 import { StreamChat } from "stream-chat";
+import toast from "react-hot-toast";
+import { initializeStreamClient, disconnectStreamClient } from "../lib/stream";
 import { sessionApi } from "../api/sessions";
-import { disconnectStreamClient, initializeStreamClient } from "../lib/steam";
 
 function useStreamClient(session, loadingSession, isHost, isParticipant) {
   const [streamClient, setStreamClient] = useState(null);
@@ -12,18 +12,16 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
   const [isInitializingCall, setIsInitializingCall] = useState(true);
 
   useEffect(() => {
-    console.log("use stream called");
-
     let videoCall = null;
     let chatClientInstance = null;
 
     const initCall = async () => {
       if (!session?.callId) return;
       if (!isHost && !isParticipant) return;
+      if (session.status === "completed") return;
 
       try {
-        const { token, userId, userName, userImage } =
-          await sessionApi.getStreamToken();
+        const { token, userId, userName, userImage } = await sessionApi.getStreamToken();
 
         const client = await initializeStreamClient(
           {
@@ -33,7 +31,6 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
           },
           token
         );
-        console.log("client", client);
 
         setStreamClient(client);
 
@@ -42,7 +39,6 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
         setCall(videoCall);
 
         const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-
         chatClientInstance = StreamChat.getInstance(apiKey);
 
         await chatClientInstance.connectUser(
@@ -55,10 +51,7 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
         );
         setChatClient(chatClientInstance);
 
-        const chatChannel = chatClientInstance.channel(
-          "messaging",
-          session.callId
-        );
+        const chatChannel = chatClientInstance.channel("messaging", session.callId);
         await chatChannel.watch();
         setChannel(chatChannel);
       } catch (error) {

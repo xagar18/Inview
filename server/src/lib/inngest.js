@@ -6,28 +6,46 @@ import { deleteStreamUser, upsertStreamUser } from "./stream.js";
 export const inngest = new Inngest({ id: "inview" });
 
 const syncUser = inngest.createFunction(
-  {
-    id: "sync-user",
-  },
+  { id: "sync-user" },
   { event: "clerk/user.created" },
   async ({ event }) => {
-    await connectDB();
-    const { id, email_addresses, first_name, last_name, image_url } =
-      event.data;
+    try {
+      await connectDB();
 
-    const newUser = {
-      clerkId: id,
-      email: email_addresses[0]?.email_address,
-      name: `${first_name || ""} ${last_name || ""}`,
-      profileImage: image_url,
-    };
-    await User.create(newUser);
+      const { id, email_addresses, first_name, last_name, image_url } =
+        event.data;
 
-    await upsertStreamUser({
-      id: newUser.clerkId.toString(),
-      name: newUser.name,
-      image: newUser.profileImage,
-    });
+      const email = email_addresses?.[0]?.email_address;
+      if (!email) {
+        console.warn("Missing email for Clerk user:", id);
+        return;
+      }
+
+      const newUser = {
+        clerkId: id,
+        email,
+        name: `${first_name || ""} ${last_name || ""}`.trim(),
+        profileImage: image_url || "",
+      };
+
+      // Use findOneAndUpdate with upsert instead of create to avoid duplicates
+      const user = await User.findOneAndUpdate({ clerkId: id }, newUser, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      });
+
+      console.log("User upserted:", user);
+
+      // Sync with Stream
+      await upsertStreamUser({
+        id: user.clerkId.toString(),
+        name: user.name,
+        image: user.profileImage,
+      });
+    } catch (error) {
+      console.error("Error upserting user:", error.message);
+    }
   }
 );
 
